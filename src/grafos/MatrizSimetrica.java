@@ -7,6 +7,11 @@ public class MatrizSimetrica {
 	private int orden; // orden de la matriz
 	private int tamVector;
 
+	/**
+	 * Contructor de la clase implementada en un vector
+	 * 
+	 * @param dimension
+	 */
 	public MatrizSimetrica(int dimension) {
 		this.dimension = dimension;
 		Double aux;
@@ -18,17 +23,30 @@ public class MatrizSimetrica {
 		this.orden = aux.intValue();
 	}
 
+	/**
+	 * seteamos el valor true o infinito de acuerdo a la fila/columna
+	 * 
+	 * @param fila
+	 * @param colum
+	 * @param valor
+	 */
 	public void setValor(int fila, int colum, boolean valor) {
 		if (fila == colum)
 			return;
 
 		int i;
 		if (fila > colum)
-			i = (colum * this.orden) + fila - ((colum * colum) + (3 * colum) + 2) / 2;
+			i = (colum * this.orden) + fila
+					- ((colum * colum) + (3 * colum) + 2) / 2;
 		else
-			i = (fila * this.orden) + colum - ((fila * fila) + (3 * fila) + 2) / 2;
+			i = (fila * this.orden) + colum - ((fila * fila) + (3 * fila) + 2)
+					/ 2;
 		matriz[i] = valor;
 
+	}
+
+	public boolean setValor(int i, boolean valor) {
+		return matriz[i] = valor;
 	}
 
 	/**
@@ -44,9 +62,11 @@ public class MatrizSimetrica {
 
 		int i;
 		if (fila > colum)
-			i = (colum * this.orden) + fila - ((colum * colum) + (3 * colum) + 2) / 2;
+			i = (colum * this.orden) + fila
+					- ((colum * colum) + (3 * colum) + 2) / 2;
 		else
-			i = (fila * this.orden) + colum - ((fila * fila) + (3 * fila) + 2) / 2;
+			i = (fila * this.orden) + colum - ((fila * fila) + (3 * fila) + 2)
+					/ 2;
 		return matriz[i];
 	}
 
