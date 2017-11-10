@@ -62,11 +62,10 @@ public class MatrizSimetrica {
 
 		int i;
 		if (fila > colum)
-			i = (colum * this.orden) + fila
-					- ((colum * colum) + (3 * colum) + 2) / 2;
+			i = (colum * this.orden) + fila	- ((colum * colum) + (3 * colum) + 2) / 2;
 		else
-			i = (fila * this.orden) + colum - ((fila * fila) + (3 * fila) + 2)
-					/ 2;
+			i = (fila * this.orden) + colum - ((fila * fila) + (3 * fila) + 2)	/ 2;
+		
 		return matriz[i];
 	}
 
@@ -81,11 +80,11 @@ public class MatrizSimetrica {
 	public void mostrarMatriz() {
 		System.out.print(" ");
 		for (int i = 0; i < dimension; i++) {
-			System.out.print("|" + i + "\t");
+			System.out.print("|" + (i+1) + "\t");
 		}
 		System.out.println("|");
 		for (int i = 0; i < dimension; i++) {
-			System.out.print(i);
+			System.out.print(i+1);
 			for (int j = 0; j < dimension; j++) {
 				System.out.print("|" + getValor(i, j) + "\t");
 			}

@@ -19,7 +19,7 @@ public class ProbadorColoreoTest {
 		Assert.assertEquals(true, probador.verificar());
 	}
 
-	@Test
+@Test
 	public void verificamosColoreoGrafoConWellPowell() {
 		Grafo grafo = new Grafo("IN/grafo.in");
 		grafo.AlgoritmoWellPowell();
@@ -33,7 +33,7 @@ public class ProbadorColoreoTest {
 	@Test
 	public void verificamosColoreoGrafoMatula() {
 		Grafo grafo = new Grafo("IN/grafo.in");
-		grafo.AlgoritmoSecuencial();
+		grafo.AlgoritmoMatula();
 		grafo.grabarGrafoColoreado("OUT/coloreoMatula.out");
 
 		ProbadorGrafoColoreado probador = new ProbadorGrafoColoreado(

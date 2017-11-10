@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Locale;
+import java.util.Random;
 import java.util.Scanner;
 
 public class Grafo {
@@ -49,9 +51,8 @@ public class Grafo {
 			for (int i = 0; i < matriz.getDimension(); i++) {
 				int grado = 0;
 				for (int j = 0; j < matriz.getDimension(); j++) {
-					if (matriz.getValor(i, j) && i != j) {
+					if (matriz.getValor(i, j) && i != j) 
 						grado++;
-					}
 				}
 				this.nodos.add(new Nodo(i + 1, 0, grado));
 			}
@@ -108,7 +109,7 @@ public class Grafo {
 				this.gradoMin = aux;
 		}
 		this.gradoMin--;
-		System.out.println("GRADOS: \t" + this.gradoMax + "\t" + this.gradoMin);
+//		System.out.println("GRADOS: \t" + this.gradoMax + "\t" + this.gradoMin);
 	}
 
 	/**
@@ -192,39 +193,15 @@ public class Grafo {
 	 * 
 	 * @param grafo
 	 */
-	public void AlgoritmoSecuencial() {
-		// int iNodo;
-		// int termino = 0;
-		// int color = 0;
-		// int cantColoreados = 0;
-		//
-		// while (termino == 0) {
-		// color++;
-		// iNodo = 1;
-		// while (termino == 0 && iNodo <= this.cantNodos) {
-		// // verifico si se puede colorear el primer nodo
-		// if (puedeColorear(iNodo, color)) {
-		// this.nodos.get(iNodo-1).setColor(color);
-		// cantColoreados++;
-		//
-		// // Verifico que todos los nodos esten coloreados para luego
-		// // terminar
-		// if (cantColoreados == this.cantNodos)
-		// termino = 1;
-		// }
-		// iNodo++;
-		// }
-		// }
-		// this.cantColores = color;
-
+	public void AlgoritmoSecuencial2() {
 		int color;
 		this.cantColores = 0;
 
 		for (int i = 0; i < this.cantNodos; i++) {
 			color = 1;
-			while (!puedeColorear(i, color))
+			while (!puedeColorear(i, color)){
 				color++;
-
+			}
 			this.nodos.get(i).setColor(color);
 			if (color > this.cantColores)
 				this.cantColores = color;
@@ -232,6 +209,11 @@ public class Grafo {
 
 	}
 
+	public void AlgoritmoSecuencial(){
+		Collections.shuffle(nodos);
+		AlgoritmoSecuencial2();
+	}
+	
 	/**
 	 * Algoritmo de coloreo Well-Powell
 	 */
@@ -248,6 +230,7 @@ public class Grafo {
 		this.AlgoritmoSecuencial();
 	}
 
+	
 	/**
 	 * Ordena los nodos de menor a mayor grado
 	 * 
@@ -354,6 +337,37 @@ public class Grafo {
 			for (int i = 0; i < this.cantNodos; i++)
 				salida.println(this.nodos.get(i).getNumero() + " "
 						+ nodos.get(i).getColor());
+
+			salida.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Generar IN de grafo 
+	 * 
+	 * @param archivo
+	 */
+	public void grabarGrafoIN(String archivo) {
+		PrintWriter salida = null;
+		try {
+			salida = new PrintWriter(new File(archivo));
+
+			salida.println(this.cantNodos + " " + this.cantAristas + " " + this.porcentAdy + " "
+					+ this.gradoMax + " " + this.gradoMin);
+
+//			for (int i = 0; i < this.cantNodos; i++)
+//				salida.println(this.nodos.get(i).getNumero() + " "+ nodos.get(i).getColor());
+//			
+			
+            for(int fila = 0; fila < this.cantNodos; fila++) {
+            	for(int colum = fila+1 ; colum < this.cantNodos ; colum++) {
+            		if(this.getValor(fila, colum) == true) {
+            			salida.println((fila+1)+" "+(colum+1));
+            		}
+            	}
+            }
 
 			salida.close();
 		} catch (FileNotFoundException e) {

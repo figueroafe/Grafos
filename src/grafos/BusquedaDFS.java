@@ -1,7 +1,7 @@
 package grafos;
 
 public class BusquedaDFS {
-	private boolean[] marca;    // marked[v] = is there an s-v path?
+	private boolean[] marca;    // marca[v] = is there an s-v path
 	private int count;  
 	
 	public BusquedaDFS(Grafo g, int s) {

@@ -47,13 +47,15 @@ public class GeneradorDeGrafos {
 	 */
 	public Grafo generarGrafoAleatorioConPorcentajeDeAdyacencia(int cantNodos,
 			double porcAdy) throws Exception {
+		
 		Random random = new Random();
 		MatrizSimetrica mat = new MatrizSimetrica(cantNodos);
 		int rand;
 		int maxAristas = (cantNodos * (cantNodos - 1)) / 2;
 		Double aux = (porcAdy * mat.getDimension()) / 100;
 		int cantAristas = (int) Math.round(aux);
-		System.out.println(maxAristas + "\t" + cantAristas);
+
+		//		System.out.println(maxAristas + "\t" + cantAristas);
 		for (int i = 0; i < cantAristas; i++) {
 			rand = random.nextInt(maxAristas);
 			if (mat.getValor(rand) == true)
@@ -61,12 +63,15 @@ public class GeneradorDeGrafos {
 			else
 				mat.setValor(rand, true);
 		}
+		
 		double porcAdyReal = (cantAristas * 100) / maxAristas;
 		Grafo grafo = new Grafo(cantNodos, mat, cantAristas, porcAdyReal);
-		if (grafo.esConexo())
-			return grafo;
-		else
-			throw new Exception("Grafo no conexo");
+		
+//		if (grafo.esConexo())
+			if (true)
+				return grafo;
+			else
+				throw new Exception("Grafo no conexo");
 
 	}
 
