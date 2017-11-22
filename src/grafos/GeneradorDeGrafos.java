@@ -1,41 +1,7 @@
 package grafos;
 
-import java.util.Random;
 
 public class GeneradorDeGrafos {
-
-	/**
-	 * Generador de grafos aleatorios dados N y una probabilidad para cada
-	 * arista.
-	 * 
-	 * @param cantNodos
-	 * @param probabilidad
-	 * @return
-	 * @throws GrafoNoConexoException
-	 */
-	public Grafo generadorGrafoAleatorioConProbabilidadEnArista(int cantNodos,
-			double probabilidad) throws Exception {
-		Random random = new Random();
-		MatrizSimetrica mat = new MatrizSimetrica(cantNodos);
-		int maxAristas = mat.getDimension();
-		int cantAristas = 0;
-
-		for (int i = 0; i < maxAristas; i++) {
-			double porc = random.nextDouble();
-			if (porc < probabilidad) {
-				mat.setValor(i, true);
-				cantAristas++;
-			} else
-				mat.setValor(i, false);
-		}
-
-		double porcAdyReal = (cantAristas * 100) / maxAristas;
-		Grafo grafo = new Grafo(cantNodos, mat, cantAristas, porcAdyReal);
-		if (grafo.esConexo())
-			return grafo;
-		else
-			throw new Exception("Grafo no conexo");
-	}
 
 	/**
 	 * Generador de grafos aleatorios dados N y el porcentaje de adyacencia
@@ -45,33 +11,81 @@ public class GeneradorDeGrafos {
 	 * @return
 	 * @throws Exception
 	 */
-	public Grafo generarGrafoAleatorioConPorcentajeDeAdyacencia(int cantNodos,
-			double porcAdy) throws Exception {
-		
-		Random random = new Random();
-		MatrizSimetrica mat = new MatrizSimetrica(cantNodos);
-		int rand;
-		int maxAristas = (cantNodos * (cantNodos - 1)) / 2;
-		Double aux = (porcAdy * mat.getDimension()) / 100;
-		int cantAristas = (int) Math.round(aux);
+	public Grafo generarGrafoAleatorioConPorcentajeDeAdyacencia(int cantNodos, double porcAdy) {
 
-		//		System.out.println(maxAristas + "\t" + cantAristas);
-		for (int i = 0; i < cantAristas; i++) {
-			rand = random.nextInt(maxAristas);
-			if (mat.getValor(rand) == true)
-				i--;
+		NodoAdyacencia[] vecNodos;
+		NodoAdyacencia nodoAdy;
+		boolean grafoCorrecto = false;
+		int gradoMax = 0;
+		int gradoMin = 100000;
+		Grafo grafo;
+
+		int cantAristas = (int) (((porcAdy) * ((cantNodos * (cantNodos - 1)) / 2)) / 100);
+		MatrizSimetrica mat = new MatrizSimetrica(cantNodos);
+
+		// Calculo de tamaño para armar el vector de nodos
+		int tam = (cantNodos * (cantNodos - 1)) / 2;
+		vecNodos = new NodoAdyacencia[tam];
+
+		while (!grafoCorrecto) {
+
+			// Genero aleatoriamente una ponderacion a cada nodo para luego
+			// ordenarlo y quedarme con la cantidad que necesito
+			int k = 0;
+			for (int i = 0; i < cantNodos - 1; i++)
+				for (int j = i + 1; j < cantNodos; j++) {
+					nodoAdy = new NodoAdyacencia(i, j, Math.random());
+					vecNodos[k] = nodoAdy;
+					k++;
+				}
+
+			// Ordeno por la adyacencia generada
+			NodoAdyacencia aux;
+
+			for (int i = 0; i < (tam - 1); i++)
+				for (int j = i + 1; j < tam; j++)
+					if (vecNodos[i].getAdya() < vecNodos[j].getAdya()) {
+						aux = vecNodos[j];
+						vecNodos[j] = vecNodos[i];
+						vecNodos[i] = aux;
+					}
+
+			// Cargo la matriz de adyacencia con la cantidad de nodos que me
+			// sirven para cumplir con el % de adyacencia
+			for (int i = 0; i < cantAristas; i++)
+				mat.setValor(vecNodos[i].getF(), vecNodos[i].getC(), true);
+
+			int[] grados = new int[cantNodos];
+			int suma;
+			// Calculo los grados de cada nodo
+			for (int i = 0; i < cantNodos - 1; i++) {
+				suma = 0;
+				for (int j = i + 1; j < cantNodos; j++)
+					if (mat.getValor(i, j) == true && i != j)
+						suma++;
+				grados[i] = suma;
+			}
+
+			// Calculo de grado maximo y minimo
+			for (int j = 0; j < cantNodos - 1; j++) {
+				if (grados[j] > gradoMax)
+					gradoMax = grados[j];
+
+				if (grados[j] < gradoMin)
+					gradoMin = grados[j];
+			}
+
+			// Verifico que el grado minimo no sea 0. Si sucede eso, vuelvo
+			// a generar porque habria nodos desconectados. No seria conexo
+			if (gradoMin != 0)
+				grafoCorrecto = true;
 			else
-				mat.setValor(rand, true);
+				gradoMin = 100000;
 		}
-		
-		double porcAdyReal = (cantAristas * 100) / maxAristas;
-		Grafo grafo = new Grafo(cantNodos, mat, cantAristas, porcAdyReal);
-		
-//		if (grafo.esConexo())
-			if (true)
-				return grafo;
-			else
-				throw new Exception("Grafo no conexo");
+
+		grafo = new Grafo(cantNodos, mat, cantAristas, porcAdy, gradoMax, gradoMin);
+
+		return grafo;
 
 	}
 
@@ -83,35 +97,44 @@ public class GeneradorDeGrafos {
 	 * @return
 	 * @throws GrafoInvalidoException
 	 */
-	public Grafo generarGrafoRegularGradoN(int cantNodos, int grado)
-			throws Exception {
-		if (grado >= cantNodos || cantNodos <= 0 || grado < 0)
-			throw new Exception("Grafo invalido");
-		MatrizSimetrica matriz = new MatrizSimetrica(cantNodos);
-		int cantAristas = 0;
+	public Grafo generarGrafoRegularGradoN(int cantNodos, int grado) {
 
-		if (cantNodos % 2 == 0) { // par
-			if (grado % 2 == 1) {
-				int saltoImpar = (cantNodos / 2);
-				for (int i = 0; i < cantNodos / 2; i++) {
-					matriz.setValor(i, i + saltoImpar, true);
-					cantAristas++;
-				}
+		MatrizSimetrica mat = new MatrizSimetrica(cantNodos);
+		int adyacencia = 0;
+		int cantAristas = 0;
+		int salto_max = (grado / 2) - 1;
+		int i = 0;
+		int j = 1;
+		int salto = 0;
+
+		while (salto <= salto_max) {
+			while (i < cantNodos) {
+				mat.setValor(i, j, true);
+				cantAristas++;
+
+				i++;
+				j++;
+				if (j == cantNodos)
+					j = 0;
 			}
-			int saltoNodo = 1;
-			for (int g = 0; g < grado / 2; g++) {
-				for (int i = 0; i < cantNodos; i++) {
-					matriz.setValor(i, (i + saltoNodo) % 6, true);
-					cantAristas++;
-				}
-				saltoNodo++;
-			}
-		} else { // impar
-			if (grado % 2 == 1)
-				throw new Exception("Grafo invalido");
+			salto++;
+			j = salto + 1;
+			i = 0;
 		}
-		Grafo grafo = new Grafo(cantNodos, matriz, cantAristas,
-				(cantAristas * 100) / ((cantNodos * (cantNodos - 1)) / 2));
+
+		if (cantNodos % 2 == 0 && (grado % 2 != 0 || grado == 1)) {
+			j = cantNodos / 2;
+			cantAristas += j;
+			for (i = 0; i <= cantNodos / 2; i++) {
+				mat.setValor(i, j, true);
+				j++;
+
+			}
+		}
+
+		adyacencia = (cantAristas * 100) / (cantNodos * (cantNodos - 1) / 2);
+
+		Grafo grafo = new Grafo(cantNodos, mat, cantAristas, adyacencia, 0, 0);
 		return grafo;
 	}
 
@@ -122,48 +145,42 @@ public class GeneradorDeGrafos {
 	 * @param porAdy
 	 * @return
 	 */
-	public Grafo generarGrafoRegularConPorcentajeDeAdyacencia(int cantNodos,
-			int porAdy) {
-		int grado = (porAdy * (cantNodos - 1)) / 100;
-		if (cantNodos < 1 || grado < 0 || grado >= cantNodos
-				|| (cantNodos != 1 && grado == 0)
-				|| (cantNodos != 2 && grado == 1)
-				|| (cantNodos % 2 != 0 && grado % 2 != 0)) {
-			System.out.println("no se puede generar el grafo");
-			return null;
+	public Grafo generarGrafoRegularConPorcentajeDeAdyacencia(int cantNodos, int porAdy) {
+
+		int cantAristas = (int) (porAdy * ((cantNodos * (cantNodos - 1)) / 2) / 100);
+		int grado = cantAristas * 2 / cantNodos;
+		MatrizSimetrica mat = new MatrizSimetrica(cantNodos);
+		int salto_max = (grado / 2) - 1;
+		int i = 0;
+		int j = 1;
+		int salto = 0;
+
+		if (cantNodos % 2 != 0 && grado % 2 != 0)
+			grado = grado - 1;
+
+		while (salto <= salto_max) {
+			while (i < cantNodos) {
+				mat.setValor(i, j, true);
+				i++;
+				j++;
+				if (j == cantNodos)
+					j = 0;
+			}
+			salto++;
+			j = salto + 1;
+			i = 0;
 		}
 
-		MatrizSimetrica matriz = new MatrizSimetrica(cantNodos);
-
-		// Camino externo.
-		for (int x = 0; x < cantNodos - 1; x++)
-			matriz.setValor(x, x + 1, true);
-		if (cantNodos > 2) { // Si hay un nodo no necesita aristas. Si hay dos,
-								// la unica arista la completa en el for
-								// anterior.
-			matriz.setValor(0, cantNodos - 1, true);
-			grado -= 2; // Coloco todas las aristas entre grafos consecutivos,
-						// entonces cada nodo ya tiene 2 aristas.
-			// Cruz.
-			if (grado % 2 != 0) {
-				for (int x = 0; x < cantNodos / 2; x++)
-					matriz.setValor(x, x + (cantNodos / 2), true);
-				grado--;
-			}
-			// Salteando.
-			int cantVeces = grado / 2;
-			int saltear = 2;
-			for (int x = 0; x < cantVeces; x++) {
-				for (int nodoActual = 0; nodoActual < cantNodos; nodoActual++) {
-					int aux = nodoActual + saltear;
-					if (aux > cantNodos - 1)
-						aux -= cantNodos;
-					matriz.setValor(nodoActual, aux, true);
-				}
-				saltear++;
+		if (cantNodos % 2 == 0 && (grado % 2 != 0 || grado == 1)) {
+			j = cantNodos / 2;
+			for (i = 0; i <= cantNodos / 2; i++) {
+				mat.setValor(i, j, true);
+				j++;
 			}
 		}
-		return new Grafo(cantNodos, matriz, (cantNodos * grado) / 2, porAdy);
+
+		return new Grafo(cantNodos, mat, cantAristas, porAdy, 0, 0);
+
 	}
 
 	/**
@@ -190,7 +207,67 @@ public class GeneradorDeGrafos {
 			} else
 				aux = aristasContiguas;
 		}
-		return new Grafo(cantNodos, matriz, cantAristas, (cantAristas * 100)
-				/ ((cantNodos * (cantNodos - 1)) / 2));
+		return new Grafo(cantNodos, matriz, cantAristas, (cantAristas * 100) / ((cantNodos * (cantNodos - 1)) / 2), 0, 0);
+	}
+
+	/**
+	 * Generador de grafos aleatorios dados N y una probabilidad para cada arista.
+	 * 
+	 * @param cantNodos
+	 * @param probabilidad
+	 * @return
+	 * @throws GrafoNoConexoException
+	 */
+	public Grafo generadorGrafoAleatorioConProbabilidadEnArista(int cantNodos, double probabilidad) {
+
+		int cantAristas = 0;
+		boolean grafoCorrecto = false;
+		int gradoMax = 0;
+		int gradoMin = 100000;
+		int[] grados = new int[cantNodos];
+		int suma = 0;
+		int adyacencia = 0;
+		MatrizSimetrica mat = new MatrizSimetrica(cantNodos);
+
+		while (!grafoCorrecto) {
+			// Cargo aleatoriamente
+			for (int i = 0; i < cantNodos - 1; i++)
+				for (int j = i + 1; j < cantNodos; j++)
+					if (Math.random() < probabilidad) {
+						mat.setValor(i, j, true);
+						cantAristas++;
+					}
+
+			// Calculo de grados de cada nodo
+			for (int i = 0; i < cantNodos - 1; i++) {
+				suma = 0;
+				for (int j = i + 1; j < cantNodos; j++)
+					if (mat.getValor(i, j) == true && i != j)
+						suma++;
+				grados[i] = suma;
+			}
+
+			// Calculo de variables del grafo
+			adyacencia = ((cantAristas * 100) / (cantNodos * (cantNodos - 1) / 2));
+
+			// Calculo de grado maximo y minimo
+			for (int j = 0; j < cantNodos - 1; j++) {
+				if (grados[j] > gradoMax)
+					gradoMax = grados[j];
+				if (grados[j] < gradoMin)
+					gradoMin = grados[j];
+			}
+
+			// Verifico que el grado minimo no sea 0. Si sucede eso, vuelvo
+			// a generar porque habria nodos desconectados.
+			if (gradoMin != 0)
+				grafoCorrecto = true;
+			else {
+				gradoMin = 100000;
+				cantAristas = 0;
+			}
+		}
+
+		return new Grafo(cantNodos, mat, cantAristas, adyacencia, gradoMin, gradoMax);
 	}
 }

@@ -43,7 +43,9 @@ public class Grafo {
 				int nodoIni = sc.nextInt();
 				int nodoFin = sc.nextInt();
 
-				this.matriz.setValor(nodoIni - 1, nodoFin - 1, true);
+				this.matriz.setValor(nodoIni, nodoFin, true);
+
+//				this.matriz.setValor(nodoIni - 1, nodoFin - 1, true);
 			}
 
 			this.nodos = new ArrayList<Nodo>();
@@ -51,7 +53,7 @@ public class Grafo {
 			for (int i = 0; i < matriz.getDimension(); i++) {
 				int grado = 0;
 				for (int j = 0; j < matriz.getDimension(); j++) {
-					if (matriz.getValor(i, j) && i != j) 
+					if (matriz.getValor(i, j) && i != j)
 						grado++;
 				}
 				this.nodos.add(new Nodo(i + 1, 0, grado));
@@ -63,23 +65,27 @@ public class Grafo {
 	}
 
 	/**
-	 * Constructor de la calse mediante parametros de nodo, matriz,aristas y
-	 * %ady
+	 * Constructor de la calse mediante parametros de nodo, matriz,aristas y %ady
 	 * 
 	 * @param cantNodos
 	 * @param mat
 	 * @param cantAristas
 	 * @param porcAdy
 	 */
-	public Grafo(int cantNodos, MatrizSimetrica mat, int cantAristas,
-			double porcAdy) {
+	public Grafo(int cantNodos, MatrizSimetrica mat, int cantAristas, double porcAdy, int gradoMax, int gradoMin) {
 		this.cantNodos = cantNodos;
 		this.matriz = mat;
 		this.cantAristas = cantAristas;
 		this.porcentAdy = porcAdy;
 		this.nodos = new ArrayList<Nodo>();
-		calcularGrados(); // Maximo y minimo
-		completarGrados(); // Para todos los nodos
+		this.gradoMax = gradoMax;
+		this.gradoMin = gradoMin;
+		// calcularGrados(); // Maximo y minimo
+		// completarGrados(); // Para todos los nodos
+	}
+
+	public Grafo(int cantidadDeNodos) {
+		this.matriz = new MatrizSimetrica(cantidadDeNodos);
 	}
 
 	/**
@@ -109,7 +115,7 @@ public class Grafo {
 				this.gradoMin = aux;
 		}
 		this.gradoMin--;
-//		System.out.println("GRADOS: \t" + this.gradoMax + "\t" + this.gradoMin);
+		// System.out.println("GRADOS: \t" + this.gradoMax + "\t" + this.gradoMin);
 	}
 
 	/**
@@ -158,7 +164,7 @@ public class Grafo {
 	 * @return
 	 */
 	public boolean esAdyacente(int nodoA, int nodoB) {
-		return matriz.getValor(nodoA, nodoB);
+		return matriz.getValor(nodoA, nodoB) || matriz.getValor(nodoB, nodoA);
 	}
 
 	/**
@@ -199,21 +205,41 @@ public class Grafo {
 
 		for (int i = 0; i < this.cantNodos; i++) {
 			color = 1;
-			while (!puedeColorear(i, color)){
+			while (!puedeColorear(i, color))
 				color++;
-			}
+
 			this.nodos.get(i).setColor(color);
 			if (color > this.cantColores)
 				this.cantColores = color;
 		}
 
+		// int i, termino = 0, color = 0, cant_coloreados = 0;
+		// while (termino == 0) {
+		// color++;
+		// i = 0;
+		//
+		// while (termino == 0 && i < this.cantNodos) {
+		// // Verifico si se puede colorear el primer nodo del vector de nodos
+		// if (puedeColorear(i, color)) {
+		// this.nodos.get(i).setColor(color);
+		// cant_coloreados++;
+		// // Verifico si todos los nodos estan coloreados
+		// if (cant_coloreados == this.cantNodos)
+		// termino = 1;
+		// }
+		// i++;
+		// }
+		// }
+		// this.cantColores = color;
+
 	}
 
-	public void AlgoritmoSecuencial(){
+	public void AlgoritmoSecuencial() {
+		// reordeno los nodos
 		Collections.shuffle(nodos);
 		AlgoritmoSecuencial2();
 	}
-	
+
 	/**
 	 * Algoritmo de coloreo Well-Powell
 	 */
@@ -230,7 +256,6 @@ public class Grafo {
 		this.AlgoritmoSecuencial();
 	}
 
-	
 	/**
 	 * Ordena los nodos de menor a mayor grado
 	 * 
@@ -238,8 +263,7 @@ public class Grafo {
 	 * @param nodoIzq
 	 * @param nodoDer
 	 */
-	private void ordenarGradoAscendente(ArrayList<Nodo> nodo, int nodoIzq,
-			int nodoDer) {
+	private void ordenarGradoAscendente(ArrayList<Nodo> nodo, int nodoIzq, int nodoDer) {
 		Nodo pivote = nodos.get((nodoIzq + nodoDer) / 2);
 		Nodo aux;
 		int izq = nodoIzq;
@@ -270,8 +294,7 @@ public class Grafo {
 	 * @param nodoIzq
 	 * @param nodoDer
 	 */
-	private void ordenarGradoDescendente(ArrayList<Nodo> nodo, int nodoIzq,
-			int nodoDer) {
+	private void ordenarGradoDescendente(ArrayList<Nodo> nodo, int nodoIzq, int nodoDer) {
 		Nodo pivote = nodos.get((nodoIzq + nodoDer) / 2);
 		Nodo aux;
 		int izq = nodoIzq;
@@ -305,14 +328,13 @@ public class Grafo {
 	private boolean puedeColorear(int nodo, int color) {
 		int i = 0;
 		// Si el nodo fue coloreado
-		if (this.nodos.get(nodo).getColor() != 0)
-			return false;
+		// if (this.nodos.get(nodo).getColor() != 0)
+		// return false;
 
 		while (i < this.cantNodos) {
-			//si el nodo a colorear es adyacente a un nodo ya pintado, no se colorea
-			if (this.nodos.get(i).getColor() == color && i != nodo) {
-				if (esAdyacente(this.nodos.get(i).getNumero()-1,
-						this.nodos.get(nodo).getNumero()-1))
+			// si el nodo a colorear es adyacente a un nodo ya pintado, no se colorea
+			if (this.nodos.get(i).getColor() == color) {
+				if (esAdyacente(this.nodos.get(i).getNumero() - 1, this.nodos.get(nodo).getNumero() - 1))
 					return false;
 			}
 			i++;
@@ -330,22 +352,19 @@ public class Grafo {
 		try {
 			salida = new PrintWriter(new File(archivoOut));
 
-			salida.println(this.cantNodos + " " + this.cantColores + " "
-					+ this.cantAristas + " " + this.porcentAdy + " "
-					+ this.gradoMax + " " + this.gradoMin);
+			salida.println(this.cantNodos + " " + this.cantColores + " " + this.cantAristas + " " + this.porcentAdy + " " + this.gradoMax + " " + this.gradoMin);
 
 			for (int i = 0; i < this.cantNodos; i++)
-				salida.println(this.nodos.get(i).getNumero() + " "
-						+ nodos.get(i).getColor());
+				salida.println(this.nodos.get(i).getNumero() + " " + nodos.get(i).getColor());
 
 			salida.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
-	 * Generar IN de grafo 
+	 * Generar IN de grafo
 	 * 
 	 * @param archivo
 	 */
@@ -354,20 +373,19 @@ public class Grafo {
 		try {
 			salida = new PrintWriter(new File(archivo));
 
-			salida.println(this.cantNodos + " " + this.cantAristas + " " + this.porcentAdy + " "
-					+ this.gradoMax + " " + this.gradoMin);
+			salida.println(this.cantNodos + " " + this.cantAristas + " " + this.porcentAdy + " " + this.gradoMax + " " + this.gradoMin);
 
-//			for (int i = 0; i < this.cantNodos; i++)
-//				salida.println(this.nodos.get(i).getNumero() + " "+ nodos.get(i).getColor());
-//			
-			
-            for(int fila = 0; fila < this.cantNodos; fila++) {
-            	for(int colum = fila+1 ; colum < this.cantNodos ; colum++) {
-            		if(this.getValor(fila, colum) == true) {
-            			salida.println((fila+1)+" "+(colum+1));
-            		}
-            	}
-            }
+			// for (int i = 0; i < this.cantNodos; i++)
+			// salida.println(this.nodos.get(i).getNumero() + " "+ nodos.get(i).getColor());
+			//
+
+			for (int fila = 0; fila < this.cantNodos; fila++) {
+				for (int colum = fila + 1; colum < this.cantNodos; colum++) {
+					if (this.getValor(fila, colum) == true) {
+						salida.println((fila + 1) + " " + (colum + 1));
+					}
+				}
+			}
 
 			salida.close();
 		} catch (FileNotFoundException e) {
